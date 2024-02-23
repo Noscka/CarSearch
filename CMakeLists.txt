@@ -9,17 +9,22 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui)
+add_subdirectory(External)
+
 qt_standard_project_setup()
 
-qt_add_executable(${PROJECT_NAME} MainWindow.ui MainWindow.cpp main.cpp)
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "CustomWidgets/*" "Headers/*" "MainWindow/*")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+qt_add_executable(${PROJECT_NAME} main.cpp ${ProjectFiles})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE NosLib Qt6::Widgets Qt6::Core Qt6::Gui)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
+
 
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)
 
@@ -31,11 +36,15 @@ add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${OUTDIR}
 )
 
-if (CMAKE_IMPORT_LIBRARY_SUFFIX)
-  add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
-    COMMAND "windeployqt" "${OUTDIR}/CarSearch.exe"
-  COMMAND_EXPAND_LISTS
-  )
-endif ()
+#if (CMAKE_IMPORT_LIBRARY_SUFFIX)
+#  add_custom_command(
+#    TARGET ${PROJECT_NAME} POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
+#  COMMAND_EXPAND_LISTS
+#  )
+#
+#  add_custom_command(
+#    TARGET ${PROJECT_NAME} POST_BUILD
+#    COMMAND "windeployqt" "${OUTDIR}/CarSearch.exe"
+#  )
+#endif ()

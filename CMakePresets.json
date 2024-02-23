@@ -4,6 +4,7 @@
     {
       "name": "windows-base",
       "hidden": true,
+	  "inherits": "Qt-Default",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
@@ -44,6 +45,7 @@
     {
       "name": "linux-base",
       "hidden": true,
+	  "inherits": "Qt-Default",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
@@ -74,24 +76,17 @@
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
-    {
-      "name": "macos-debug",
-      "displayName": "macOS Debug",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
-        }
+	{
+      "hidden": true,
+      "name": "Qt-Default",
+      "inherits": "6.7.0"
+    },
+	{
+      "hidden": true,
+      "name": "6.7.0",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "D:/LIBRARIES/QT/6.7.0/MSVC2019_64"
       }
     },
     {
@@ -102,17 +97,7 @@
       },
       "environment": {
         "PATH": "$penv{PATH};$env{QTDIR}/bin"
-      },
-      "vendor": {
-        "qt-project.org/Qt": {
-          "checksum": "Sp19WUpde73JS7nK33HZMqVZTyI="
-        }
       }
     }
-  ],
-  "vendor": {
-    "qt-project.org/Presets": {
-      "checksum": "EF78/E5zjhYe146nkhZJc6CLZBU="
-    }
-  }
+  ]
 }

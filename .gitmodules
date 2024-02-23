@@ -1,0 +1,3 @@
+[submodule "External/NosLib"]
+	path = External/NosLib
+	url = https://github.com/noscka/noslib
