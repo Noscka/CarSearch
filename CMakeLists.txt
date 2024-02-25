@@ -20,10 +20,10 @@ qt_add_executable(${PROJECT_NAME} main.cpp ${ProjectFiles})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE NosLib Qt6::Widgets Qt6::Core Qt6::Gui)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#    WIN32_EXECUTABLE ON
+#    MACOSX_BUNDLE ON
+#)
 
 
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)

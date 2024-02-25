@@ -14,28 +14,44 @@ signals:
 	inline void MouseReleased(Listing* listingEntry);
 
 protected:
-	QHBoxLayout* ContainerLayout;
+	QVBoxLayout* ContainerLayout;
+	QLabel* Picture;
 	QLabel* Title;
+	QLabel* Description;
 	
 	Listing* ListingEntry;
 public:
 	inline ListingContainer(Listing* listingEntry, QWidget* parent = nullptr) : QWidget(parent)
 	{
-		setStyleSheet("background-color:Grey;");
 
 		ListingEntry = listingEntry;
 
 		setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-		ContainerLayout = new QHBoxLayout();
+		ContainerLayout = new QVBoxLayout();
 		ContainerLayout->setContentsMargins(6, 6, 6, 6);
 		setLayout(ContainerLayout);
 
+		ContainerLayout->setStyleSheet("background-color:Grey;");
+
+		Picture = new QLabel();
+		QImage imagePixmap;
+		imagePixmap.load(R"(C:\Users\Adam\Downloads\CarDescription.png)");
+		Picture->setPixmap(QPixmap::fromImage(imagePixmap.scaled(QSize(120,120), Qt::KeepAspectRatio, Qt::FastTransformation)));
+		ContainerLayout->addWidget(Picture);
+
 		Title = new QLabel();
 		Title->setText(QString::fromStdString(ListingEntry->GetTitle()));
-		QFont usernameFont = Title->font();
-		usernameFont.setPointSize(16);
-		Title->setFont(usernameFont);
+		QFont titleFont = Title->font();
+		titleFont.setPointSize(12);
+		Title->setFont(titleFont);
 		ContainerLayout->addWidget(Title);
+
+		Description = new QLabel();
+		Description->setText(QString::fromStdString(ListingEntry->GetDescription()));
+		QFont descriptionFont = Description->font();
+		descriptionFont.setPointSize(10);
+		Description->setFont(descriptionFont);
+		ContainerLayout->addWidget(Description);
 	}
 
 protected:
