@@ -1,3 +1,6 @@
 [submodule "External/NosLib"]
 	path = External/NosLib
 	url = https://github.com/Noscka/NosLib
+[submodule "External/HtmlParser"]
+	path = External/HtmlParser
+	url = https://github.com/mylogin/htmlparser.git

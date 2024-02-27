@@ -8,6 +8,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
+
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui)
 add_subdirectory(External)
@@ -19,6 +21,7 @@ file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "CustomWidgets/*" "Headers/*" "
 qt_add_executable(${PROJECT_NAME} main.cpp ${ProjectFiles})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE NosLib Qt6::Widgets Qt6::Core Qt6::Gui)
+target_include_directories(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui)
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES
 #    WIN32_EXECUTABLE ON
