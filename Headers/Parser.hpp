@@ -4,6 +4,7 @@
 #include <NosLib/DynamicArray.hpp>
 
 #include <html.hpp>
+#include <nlohmann/Json.hpp>
 
 #include "Listing.hpp"
 
@@ -133,16 +134,58 @@ private:
 
 	inline std::vector<std::string> GetPictureLinks(html::node* htmlRootNode)
 	{
-		/* o->w->5->3->model->PICTURE->mediaList->[image/zoomImg] */
-		std::vector<html::node*> foundImageNodes = htmlRootNode->select("div.image-container");
+		using json = nlohmann::json;
 
-		for (html::node* imgEntries : foundImageNodes)
+		/* @.o.w[4][2].model.PICTURE.mediaList[0].image.originalImg.URL */
+		json listingJsonInfo;
 		{
-			std::cout << imgEntries->to_raw_html() << std::endl;
-			//printf("%s\n", imgEntries->get_attr(""))
+			std::vector<html::node*> foundImageNodes = htmlRootNode->select("html>body>script:last");
+
+			std::string jsonData = foundImageNodes[0]->to_text();
+
+			const static std::string startTag = ".concat(";
+			const static std::string endTag = ")";
+
+			size_t startPosition = std::string::npos;
+			size_t endPosition = std::string::npos;
+
+			startPosition = jsonData.find(startTag);
+
+			if (startPosition == std::string::npos)
+			{
+				/* FAILED, DO SOMETHING */
+			}
+			startPosition += startTag.size();
+
+			endPosition = jsonData.find_last_of(endTag);
+
+			jsonData = jsonData.substr(startPosition, endPosition - startPosition);
+
+			try
+			{
+				listingJsonInfo = json::parse(jsonData);
+			}
+			catch (const std::exception& ex)
+			{
+				fprintf(stderr, "Line %d in function %s: %s\n", __LINE__, __FUNCTION__, ex.what());
+				/* FAILED, DO SOMETHING */
+			}
+			//printf("%s\n", jsonData.c_str());
 		}
 
+
 		std::vector<std::string> out;
+
+		for (auto& it : listingJsonInfo["o"]["w"][4][2]["model"]["PICTURE"]["mediaList"])
+		{
+			std::string url = it["image"]["originalImg"]["URL"].get<std::string>();
+			out.emplace_back(url);
+		}
+
+		for (std::string entry : out)
+		{
+			printf("%s\n", entry.c_str());
+		}
 
 		return out;
 	}
