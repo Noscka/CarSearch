@@ -3,6 +3,8 @@
 #include <NosLib/HostPath.hpp>
 #include <NosLib/DynamicArray.hpp>
 
+#include <html.hpp>
+
 #include "Listing.hpp"
 
 #include <string>
@@ -67,6 +69,16 @@ public:
 
 		std::string content = res->body;
 
+#if 1
+		static int fileNum = 1;
+
+		std::ofstream debugFile(std::format("file{}.html", fileNum));
+		debugFile.write(content.c_str(), content.size());
+		debugFile.close();
+
+		fileNum++;
+#endif
+
 		return parser->Parse(content, url);
 	}
 
@@ -105,76 +117,90 @@ private:
 		return out;
 	}
 
-	inline std::string GetEbayTitle(const std::string& htmlContent)
+	inline std::string GetEbayTitle(html::node* htmlRootNode)
 	{
-		const static std::string startTag = "<div class=vi-title__main><h1><!--F#10--><span><!--F#10--><span>";
-		const static std::string endTag = "</span><!--F/--></span><!--F/--></h1></div>";
+		std::string titleData = htmlRootNode->select("div.vi-title__main")[0]->to_text();
+
+		titleData = std::regex_replace(titleData, std::regex("&#34;"), "\"");
+		titleData = std::regex_replace(titleData, std::regex("&quot;"), "\"");
+		titleData = std::regex_replace(titleData, std::regex("&amp;"), "&");
+		titleData = std::regex_replace(titleData, std::regex("&lt;"), "<");
+		titleData = std::regex_replace(titleData, std::regex("&gt;"), ">");
+
+		titleData = ConvertToNormal(titleData);
+		return titleData;
+	}
+
+	inline std::vector<std::string> GetPictureLinks(html::node* htmlRootNode)
+	{
+		/* generated in js. all the needed information might be contained in some data field as json */
+
+		std::vector<html::node*> foundImageNodes = htmlRootNode->select("div.image-container");
+
+		for (html::node* imgEntries : foundImageNodes)
+		{
+			std::cout << imgEntries->to_raw_html() << std::endl;
+			//printf("%s\n", imgEntries->get_attr(""))
+		}
+
+		std::vector<std::string> out;
+
+		return out;
+	}
+
+	inline std::string GetEbayDescription(html::node* htmlRootNode)
+	{
+		throw std::exception("Doesn't work");
+
+#if 0
+		const static std::string startTag = "<div class=\"ux-layout-section__textual-display ux-layout-section__textual-display--shortDescription\"><span class=\"ux-textspans\">";
+		const static std::string endTag = "</span></div>";
+
+		std::ofstream test("abc.html");
+		test.write(htmlContent.c_str(), htmlContent.size());
+		test.close();
 
 		std::stringstream htmlStream(htmlContent);
 
 		std::string titleData;
 		std::string line;
+
+		size_t linePosition = 0;
+		size_t startPosition = std::string::npos;
+		size_t endPosition = std::string::npos;
+
 		while (std::getline(htmlStream, line))
 		{
-			size_t startPosition = line.find(startTag);
-
 			if (startPosition == std::string::npos)
 			{
-				continue;
+				startPosition = line.find(startTag);
+
+				if (startPosition == std::string::npos)
+				{
+					linePosition += line.size();
+					continue;
+				}
+
+				startPosition += linePosition + startTag.size();
 			}
 
-			startPosition += startTag.length();
-
-			size_t endPosition = line.find(endTag, startPosition);
+			endPosition = line.find(endTag, startPosition);
 
 			if (endPosition == std::string::npos)
 			{
+				linePosition += line.size();
 				continue;
 			}
 
-			titleData = line.substr(startPosition, endPosition - startPosition);
-
-			titleData = std::regex_replace(titleData, std::regex("&#34;"), "\"");
-			titleData = std::regex_replace(titleData, std::regex("&quot;"), "\"");
-			titleData = std::regex_replace(titleData, std::regex("&amp;"), "&");
-			titleData = std::regex_replace(titleData, std::regex("&lt;"), "<");
-			titleData = std::regex_replace(titleData, std::regex("&gt;"), ">");
-
-			titleData = ConvertToNormal(titleData);
+			endPosition += linePosition;
 
 			break;
 		}
 
-		return titleData;
-	}
+		std::string description = htmlStream.str().substr(startPosition, endPosition - startPosition);
 
-	inline std::string GetEbayDescription(const std::string& htmlContent)
-	{
-		const static std::string startTag = "<div class=\"ux-layout-section__textual-display ux-layout-section__textual-display--shortDescription\"><span class=\"ux-textspans\">";
-		const static std::string endTag = "</span></div>";
-
-		std::stringstream htmlStream(htmlContent);
-
-		std::string titleData;
-		std::string line;
-		while (std::getline(htmlStream, line))
-		{
-			size_t startPosition = line.find(startTag);
-
-			if (startPosition == std::string::npos)
-			{
-				continue;
-			}
-
-			startPosition += startTag.length();
-
-			size_t endPosition = line.find(endTag, startPosition);
-
-			if (endPosition == std::string::npos)
-			{
-				continue;
-			}
-		}
+		return description;
+#endif
 	}
 
 protected:
@@ -204,7 +230,12 @@ public:
 
 	virtual Listing* Parse(const std::string& content, const NosLib::HostPath& url)
 	{
-		return new Listing(GetEbayTitle(content), "description", url.Full());
+		html::parser p;
+		html::node_ptr node = p.parse(content);
+
+		(void)GetPictureLinks(node.get());
+
+		return new Listing(GetEbayTitle(node.get()), "", url.Full());
 	}
 };
 

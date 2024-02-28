@@ -30,7 +30,7 @@ public:
 		ui.setupUi(this);
 
 		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/375266583187"));
-		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/404807750267"));
+		//ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/196258440476"));
 		ui.scrollArea->AddNewListingEntry(new Listing("1", "a", "a"));
 		ui.scrollArea->AddNewListingEntry(new Listing("2", "a", "a"));
 		ui.scrollArea->AddNewListingEntry(new Listing("3", "a", "a"));

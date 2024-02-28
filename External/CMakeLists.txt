@@ -1,1 +1,2 @@
 add_subdirectory(NosLib)
+add_subdirectory(HtmlParser)

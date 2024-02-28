@@ -23,15 +23,17 @@ protected:
 public:
 	inline ListingContainer(Listing* listingEntry, QWidget* parent = nullptr) : QWidget(parent)
 	{
-
 		ListingEntry = listingEntry;
 
 		setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+		setFixedSize(QSize(250,250));
+		setStyleSheet("background-color:Grey;");
+
+
 		ContainerLayout = new QVBoxLayout();
 		ContainerLayout->setContentsMargins(6, 6, 6, 6);
 		setLayout(ContainerLayout);
 
-		ContainerLayout->setStyleSheet("background-color:Grey;");
 
 		Picture = new QLabel();
 		QImage imagePixmap;
