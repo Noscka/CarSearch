@@ -133,8 +133,7 @@ private:
 
 	inline std::vector<std::string> GetPictureLinks(html::node* htmlRootNode)
 	{
-		/* generated in js. all the needed information might be contained in some data field as json */
-
+		/* o->w->5->3->model->PICTURE->mediaList->[image/zoomImg] */
 		std::vector<html::node*> foundImageNodes = htmlRootNode->select("div.image-container");
 
 		for (html::node* imgEntries : foundImageNodes)

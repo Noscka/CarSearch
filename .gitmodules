@@ -4,3 +4,6 @@
 [submodule "External/HtmlParser"]
 	path = External/HtmlParser
 	url = https://github.com/mylogin/htmlparser.git
+[submodule "External/Json"]
+	path = External/Json
+	url = https://github.com/nlohmann/json
