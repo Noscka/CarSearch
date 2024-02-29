@@ -10,7 +10,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
 
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui)
 add_subdirectory(External)
 
@@ -22,6 +21,8 @@ qt_add_executable(${PROJECT_NAME} main.cpp ${ProjectFiles})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE NosLib htmlparser nlohmann_json::nlohmann_json Qt6::Widgets Qt6::Core Qt6::Gui)
 target_include_directories(${PROJECT_NAME} PRIVATE htmlparser Qt6::Widgets Qt6::Core Qt6::Gui)
+
+add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES
 #    WIN32_EXECUTABLE ON

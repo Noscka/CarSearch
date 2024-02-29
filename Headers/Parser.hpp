@@ -7,6 +7,7 @@
 #include <nlohmann/Json.hpp>
 
 #include "Listing.hpp"
+#include "PictureManager.hpp"
 
 #include <string>
 
@@ -50,7 +51,7 @@ public:
 			return nullptr;
 		}
 
-		httplib::Client client = NosLib::MakeClient(url.Host, "CarSearch");
+		httplib::Client client = NosLib::MakeClient(url.Host, false, "CarSearch");
 
 		httplib::Result res = client.Get(url.Path);
 
@@ -136,8 +137,8 @@ private:
 	{
 		using json = nlohmann::json;
 
-		/* @.o.w[4][2].model.PICTURE.mediaList[0].image.originalImg.URL */
 		json listingJsonInfo;
+
 		{
 			std::vector<html::node*> foundImageNodes = htmlRootNode->select("html>body>script:last");
 
@@ -173,7 +174,6 @@ private:
 			//printf("%s\n", jsonData.c_str());
 		}
 
-
 		std::vector<std::string> out;
 
 		for (auto& it : listingJsonInfo["o"]["w"][4][2]["model"]["PICTURE"]["mediaList"])
@@ -181,6 +181,8 @@ private:
 			std::string url = it["image"]["originalImg"]["URL"].get<std::string>();
 			out.emplace_back(url);
 		}
+
+		PictureHolder pic(out[0]);
 
 		for (std::string entry : out)
 		{
