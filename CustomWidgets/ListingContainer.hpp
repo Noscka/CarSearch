@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "Headers/Listing.hpp"
+#include "PictureCarousel.hpp"
 
 class ListingContainer : public QWidget
 {
@@ -14,12 +15,14 @@ signals:
 	inline void MouseReleased(Listing* listingEntry);
 
 protected:
-	QVBoxLayout* ContainerLayout;
-	QLabel* Picture;
-	QLabel* Title;
-	QLabel* Description;
+	QVBoxLayout* ContainerLayout = nullptr;
+	QLabel* Picture = nullptr;
+	QLabel* Title = nullptr;
+	QLabel* Description = nullptr;
 	
-	Listing* ListingEntry;
+	PictureCarousel* APictureCarousel = nullptr;
+
+	Listing* ListingEntry = nullptr;
 public:
 	inline ListingContainer(Listing* listingEntry, QWidget* parent = nullptr) : QWidget(parent)
 	{
@@ -54,6 +57,16 @@ public:
 		descriptionFont.setPointSize(10);
 		Description->setFont(descriptionFont);
 		ContainerLayout->addWidget(Description);
+	}
+
+	~ListingContainer()
+	{
+		delete ContainerLayout;
+		delete Picture;
+		delete Title;
+		delete Description;
+		delete APictureCarousel;
+		delete ListingEntry;
 	}
 
 protected:

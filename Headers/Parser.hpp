@@ -71,7 +71,7 @@ public:
 
 		std::string content = res->body;
 
-#if 1
+#if 0
 		static int fileNum = 1;
 
 		std::ofstream debugFile(std::format("file{}.html", fileNum));
@@ -95,98 +95,21 @@ class EbayParser : public Parser
 private:
 	inline static EbayParser* instance = nullptr;
 
-	inline std::string ConvertToNormal(std::string content)
+	inline std::string GetEbayTitle(const nlohmann::json& listingJsonInfo)
 	{
-		std::string out;
-		std::smatch matches;
+		std::string title = listingJsonInfo["TITLE"]["mainTitle"]["textSpans"][0]["text"].get<std::string>();
 
-		while (std::regex_search(content, matches, std::regex("&#([0-9]+);")))
-		{
-			std::string currentMatch = matches[0].str();
-
-			uint8_t numStart = 2;
-			uint8_t numLenght = currentMatch.length() - (numStart + 1);
-
-			std::string charNumStr = currentMatch.substr(numStart, numLenght);
-
-			int charNum = std::stoi(charNumStr);
-
-			out.push_back((char)charNum);
-
-			content = matches.suffix().str();
-		}
-
-		return out;
+		return title;
 	}
 
-	inline std::string GetEbayTitle(html::node* htmlRootNode)
+	inline std::vector<std::string> GetPictureLinks(const nlohmann::json& listingJsonInfo)
 	{
-		std::string titleData = htmlRootNode->select("div.vi-title__main")[0]->to_text();
-
-		titleData = std::regex_replace(titleData, std::regex("&#34;"), "\"");
-		titleData = std::regex_replace(titleData, std::regex("&quot;"), "\"");
-		titleData = std::regex_replace(titleData, std::regex("&amp;"), "&");
-		titleData = std::regex_replace(titleData, std::regex("&lt;"), "<");
-		titleData = std::regex_replace(titleData, std::regex("&gt;"), ">");
-
-		titleData = ConvertToNormal(titleData);
-		return titleData;
-	}
-
-	inline std::vector<std::string> GetPictureLinks(html::node* htmlRootNode)
-	{
-		using json = nlohmann::json;
-
-		json listingJsonInfo;
-
-		{
-			std::vector<html::node*> foundImageNodes = htmlRootNode->select("html>body>script:last");
-
-			std::string jsonData = foundImageNodes[0]->to_text();
-
-			const static std::string startTag = ".concat(";
-			const static std::string endTag = ")";
-
-			size_t startPosition = std::string::npos;
-			size_t endPosition = std::string::npos;
-
-			startPosition = jsonData.find(startTag);
-
-			if (startPosition == std::string::npos)
-			{
-				/* FAILED, DO SOMETHING */
-			}
-			startPosition += startTag.size();
-
-			endPosition = jsonData.find_last_of(endTag);
-
-			jsonData = jsonData.substr(startPosition, endPosition - startPosition);
-
-			try
-			{
-				listingJsonInfo = json::parse(jsonData);
-			}
-			catch (const std::exception& ex)
-			{
-				fprintf(stderr, "Line %d in function %s: %s\n", __LINE__, __FUNCTION__, ex.what());
-				/* FAILED, DO SOMETHING */
-			}
-			//printf("%s\n", jsonData.c_str());
-		}
-
 		std::vector<std::string> out;
 
-		for (auto& it : listingJsonInfo["o"]["w"][4][2]["model"]["PICTURE"]["mediaList"])
+		for (auto& it : listingJsonInfo["PICTURE"]["mediaList"])
 		{
 			std::string url = it["image"]["originalImg"]["URL"].get<std::string>();
 			out.emplace_back(url);
-		}
-
-		PictureHolder pic(out[0]);
-
-		for (std::string entry : out)
-		{
-			printf("%s\n", entry.c_str());
 		}
 
 		return out;
@@ -274,12 +197,53 @@ public:
 
 	virtual Listing* Parse(const std::string& content, const NosLib::HostPath& url)
 	{
-		html::parser p;
-		html::node_ptr node = p.parse(content);
+		using json = nlohmann::json;
 
-		(void)GetPictureLinks(node.get());
+		json listingJsonInfo;
 
-		return new Listing(GetEbayTitle(node.get()), "", url.Full());
+		{
+			html::parser p;
+			html::node_ptr node = p.parse(content);
+
+			std::vector<html::node*> jsonScriptNode = node->select("html>body>script:last");
+
+			std::string jsonData = jsonScriptNode[0]->to_text();
+
+			const static std::string startTag = ".concat(";
+			const static std::string endTag = ")";
+
+			size_t startPosition = std::string::npos;
+			size_t endPosition = std::string::npos;
+
+			startPosition = jsonData.find(startTag);
+
+			if (startPosition == std::string::npos)
+			{
+				fprintf(stderr, "Line %d in function %s: %s\n", __LINE__, __FUNCTION__, "Failed to find json data");
+				return nullptr;
+			}
+			startPosition += startTag.size();
+
+			endPosition = jsonData.find_last_of(endTag);
+
+			jsonData = jsonData.substr(startPosition, endPosition - startPosition);
+
+			try
+			{
+				listingJsonInfo = json::parse(jsonData);
+			}
+			catch (const std::exception& ex)
+			{
+				fprintf(stderr, "Line %d in function %s: %s\n", __LINE__, __FUNCTION__, ex.what());
+				return nullptr;
+			}
+			//printf("%s\n", jsonData.c_str());
+		}
+
+		/* offset to useful data position */
+		listingJsonInfo = listingJsonInfo["o"]["w"][4][2]["model"];
+
+		return new Listing(GetEbayTitle(listingJsonInfo), "", url.Full(), GetPictureLinks(listingJsonInfo));
 	}
 };
 
