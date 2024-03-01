@@ -16,11 +16,9 @@ signals:
 
 protected:
 	QVBoxLayout* ContainerLayout = nullptr;
-	QLabel* Picture = nullptr;
 	QLabel* Title = nullptr;
-	QLabel* Description = nullptr;
-	
-	PictureCarousel* APictureCarousel = nullptr;
+
+	PictureCarousel* PicCarousel = nullptr;
 
 	Listing* ListingEntry = nullptr;
 public:
@@ -29,43 +27,34 @@ public:
 		ListingEntry = listingEntry;
 
 		setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-		setFixedSize(QSize(250,250));
+		setFixedSize(QSize(250, 250));
 		setStyleSheet("background-color:Grey;");
 
-
-		ContainerLayout = new QVBoxLayout();
+		ContainerLayout = new QVBoxLayout(this);
 		ContainerLayout->setContentsMargins(6, 6, 6, 6);
 		setLayout(ContainerLayout);
 
+		PicCarousel = new PictureCarousel(listingEntry->GetPictureManager(), this);
+		PicCarousel->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+		ContainerLayout->addWidget(PicCarousel);
 
-		Picture = new QLabel();
-		QImage imagePixmap;
-		imagePixmap.load(R"(C:\Users\Adam\Downloads\CarDescription.png)");
-		Picture->setPixmap(QPixmap::fromImage(imagePixmap.scaled(QSize(120,120), Qt::KeepAspectRatio, Qt::FastTransformation)));
-		ContainerLayout->addWidget(Picture);
-
-		Title = new QLabel();
+		Title = new QLabel(this);
+		Title->setWordWrap(true);
+		Title->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum));
+		Title->setMargin(1);
 		Title->setText(QString::fromStdString(ListingEntry->GetTitle()));
 		QFont titleFont = Title->font();
 		titleFont.setPointSize(12);
 		Title->setFont(titleFont);
 		ContainerLayout->addWidget(Title);
 
-		Description = new QLabel();
-		Description->setText(QString::fromStdString(ListingEntry->GetDescription()));
-		QFont descriptionFont = Description->font();
-		descriptionFont.setPointSize(10);
-		Description->setFont(descriptionFont);
-		ContainerLayout->addWidget(Description);
 	}
 
 	~ListingContainer()
 	{
 		delete ContainerLayout;
-		delete Picture;
 		delete Title;
-		delete Description;
-		delete APictureCarousel;
+		delete PicCarousel;
 		delete ListingEntry;
 	}
 

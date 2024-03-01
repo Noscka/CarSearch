@@ -19,6 +19,13 @@ public:
 		NosLib::HttpUtilities::DownloadFile(picURL, downloadPath, false);
 	}
 
+	QImage MakeQImage()
+	{
+		QImage image;
+		image.load(QString::fromStdString(PicFilePath));
+		return image;
+	}
+
 	~PictureHolder()
 	{
 		std::filesystem::remove(PicFilePath);
@@ -67,5 +74,10 @@ public:
 		{
 			AddPicture(picEntry);
 		}
+	}
+
+	PictureHolder*& operator[](const int& pos)
+	{
+		return Pictures[pos];
 	}
 };

@@ -15,15 +15,13 @@ private:
 
 	std::string URL;
 	std::string Title;
-	std::string Description;
 
 	PictureManager PicManager;
 
 public:
-	inline Listing(const std::string& title, const std::string& description, const std::string& url, const std::vector<std::string>& picVector)
+	inline Listing(const std::string& title, const std::string& url, const std::vector<std::string>& picVector)
 	{
 		Title = title;
-		Description = description;
 		URL = url;
 
 		PicManager.SetStoreDirectory(std::format("{}{}", Title[0], DirectoryId));
@@ -37,14 +35,14 @@ public:
 		return Title;
 	}
 
-	inline std::string GetDescription() const
-	{
-		return Description;
-	}
-
 	inline std::string GetURL() const
 	{
 		return URL;
+	}
+
+	inline PictureManager* GetPictureManager()
+	{
+		return &PicManager;
 	}
 
 private:

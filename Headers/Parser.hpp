@@ -115,61 +115,6 @@ private:
 		return out;
 	}
 
-	inline std::string GetEbayDescription(html::node* htmlRootNode)
-	{
-		throw std::exception("Doesn't work");
-
-#if 0
-		const static std::string startTag = "<div class=\"ux-layout-section__textual-display ux-layout-section__textual-display--shortDescription\"><span class=\"ux-textspans\">";
-		const static std::string endTag = "</span></div>";
-
-		std::ofstream test("abc.html");
-		test.write(htmlContent.c_str(), htmlContent.size());
-		test.close();
-
-		std::stringstream htmlStream(htmlContent);
-
-		std::string titleData;
-		std::string line;
-
-		size_t linePosition = 0;
-		size_t startPosition = std::string::npos;
-		size_t endPosition = std::string::npos;
-
-		while (std::getline(htmlStream, line))
-		{
-			if (startPosition == std::string::npos)
-			{
-				startPosition = line.find(startTag);
-
-				if (startPosition == std::string::npos)
-				{
-					linePosition += line.size();
-					continue;
-				}
-
-				startPosition += linePosition + startTag.size();
-			}
-
-			endPosition = line.find(endTag, startPosition);
-
-			if (endPosition == std::string::npos)
-			{
-				linePosition += line.size();
-				continue;
-			}
-
-			endPosition += linePosition;
-
-			break;
-		}
-
-		std::string description = htmlStream.str().substr(startPosition, endPosition - startPosition);
-
-		return description;
-#endif
-	}
-
 protected:
 	inline virtual bool Check(const NosLib::HostPath& url) override
 	{
@@ -243,11 +188,11 @@ public:
 		/* offset to useful data position */
 		listingJsonInfo = listingJsonInfo["o"]["w"][4][2]["model"];
 
-		return new Listing(GetEbayTitle(listingJsonInfo), "", url.Full(), GetPictureLinks(listingJsonInfo));
+		return new Listing(GetEbayTitle(listingJsonInfo), url.Full(), GetPictureLinks(listingJsonInfo));
 	}
 };
 
-inline void InnitParsers()
+inline void InitParsers()
 {
 	EbayParser::GetParser();
 }
