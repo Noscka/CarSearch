@@ -205,8 +205,9 @@ protected:
 
 		httplib::Client client = NosLib::MakeClient(urlRequest.Host, false, "CarSearch");
 		client.set_keep_alive(true);
-		httplib::Headers headers = {
-  { "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" }
+		httplib::Headers headers =
+		{
+			{ "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" }
 		};
 
 		httplib::Result res = client.Get(urlRequest.Path, headers);
@@ -226,7 +227,7 @@ protected:
 
 		std::string content = res->body;
 
-#if 1
+#if 0
 		static int fileNum = 1;
 
 		std::ofstream debugFile(std::format("file{}.html", fileNum));

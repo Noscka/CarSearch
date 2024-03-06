@@ -11,7 +11,7 @@
 class Listing
 {
 private:
-	inline static int DirectoryId = 0;
+	inline static int DirectoryId = 0; /* TODO: maybe think of some more advanced ID system */
 
 	std::string URL;
 	std::string Title;
@@ -24,7 +24,7 @@ public:
 		Title = title;
 		URL = url;
 
-		PicManager.SetStoreDirectory(std::format("{}{}", Title[0], DirectoryId));
+		PicManager.SetStoreDirectory(std::format("{}", DirectoryId));
 		PicManager.AddPicture(picVector);
 
 		DirectoryId++;
