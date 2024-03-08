@@ -24,7 +24,6 @@ public slots:
 		AddWidget(widget);
 	}
 
-
 public:
 	LeftToRightLayout(int maxColumnCount, QWidget* parent) : QGridLayout(parent)
 	{
@@ -115,7 +114,7 @@ public:
 		currentLayout->AddWidget(newListingEntryContainer);
 
 		//this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
-		QCoreApplication::processEvents();
+		//QCoreApplication::processEvents();
 	}
 
 	template <typename ConnectFunc>

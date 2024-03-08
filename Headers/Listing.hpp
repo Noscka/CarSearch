@@ -5,18 +5,25 @@
 
 #include <string>
 #include <format>
+#include <atomic>
 
 #include "PictureManager.hpp"
 
-class Listing
+class Listing : public QObject
 {
+	Q_OBJECT
+
 private:
 	inline static int DirectoryId = 0; /* TODO: maybe think of some more advanced ID system */
+	inline static std::mutex SetIncMutex;
 
 	std::string URL;
 	std::string Title;
 
 	PictureManager PicManager;
+
+signals:
+	void AddSelfToUi(Listing*);
 
 public:
 	inline Listing(const std::string& title, const std::string& url, const std::vector<std::string>& picVector)
@@ -24,10 +31,17 @@ public:
 		Title = title;
 		URL = url;
 
-		PicManager.SetStoreDirectory(std::format("{}", DirectoryId));
+		{ /* Prevent from threads using the same number and double incrementing */
+			std::lock_guard<std::mutex> lock(SetIncMutex);
+			PicManager.SetStoreDirectory(std::format("{}", DirectoryId));
+			DirectoryId++;
+		}
 		PicManager.AddPicture(picVector);
+	}
 
-		DirectoryId++;
+	inline void AddSelfToUiFunc()
+	{
+		emit AddSelfToUi(this);
 	}
 
 	inline std::string GetTitle() const

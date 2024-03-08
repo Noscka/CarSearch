@@ -31,6 +31,7 @@ protected:
 		return nullptr;
 	}
 
+	inline static std::mutex ConnectionMutex;
 public:
 	Parser() {}
 
@@ -150,6 +151,7 @@ public:
 		using json = nlohmann::json;
 
 		json listingJsonInfo;
+		std::string jsonData; /* DEBUG to see string */
 
 		{
 			html::parser p;
@@ -157,7 +159,7 @@ public:
 
 			std::vector<html::node*> jsonScriptNode = node->select("html>body>script:last");
 
-			std::string jsonData = jsonScriptNode[0]->to_text();
+			jsonData = jsonScriptNode[0]->to_text();
 
 			const static std::string startTag = ".concat(";
 			const static std::string endTag = ")";

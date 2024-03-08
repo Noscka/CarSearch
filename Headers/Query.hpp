@@ -5,16 +5,50 @@
 #include <vector>
 #include <format>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 #include "Parser.hpp"
+#include "ThreadPool.hpp"
+
+inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>* workItems, Ui::MainWindow* ui)
+{
+	for (WorkHolder<std::string>& listingEntry : (*workItems))
+	{
+		if (listingEntry.GetWorkStatus() != WorkStatus::Unfinished) /* if already started or finished, continue */
+		{
+			continue;
+		}
+
+		listingEntry.SetWorkStatus(WorkStatus::Started);
+
+		try
+		{
+			Listing* newListing = Parser::ParseWebpage(listingEntry.GetWorkItem());
+			QObject::connect(newListing, &Listing::AddSelfToUi, ui->scrollArea, &ListingManager::AddNewListingEntry);
+			newListing->AddSelfToUiFunc();
+		}
+		catch (const std::exception ex)
+		{
+			fprintf(stderr, "%s\nListing %s skipped\n", ex.what(), listingEntry.GetWorkItem().c_str());
+		}
+
+		listingEntry.SetWorkStatus(WorkStatus::Finished);
+	}
+}
 
 class BaseQuery
 {
 protected:
 	inline static NosLib::DynamicArray<BaseQuery*> QueryClasses;
 
-	virtual NosLib::DynamicArray<std::string> QueryWebsite(const std::string& queryString) = 0;
+	std::mutex ArrayMutex;
+	std::mutex CreateClientMutex;
+
+	virtual void QueryWebsite(const std::string& queryString, NosLib::DynamicArray<std::string>* outArray) = 0;
 private:
+	
 public:
 	BaseQuery() {}
 
@@ -27,17 +61,22 @@ public:
 	{
 		NosLib::DynamicArray<std::string> listings;
 
-		for (BaseQuery* entry : QueryClasses)
 		{
-			listings += entry->QueryWebsite(queryString);
+			NosLib::DynamicArray<std::thread*> queryThreads;
+
+			for (BaseQuery* entry : QueryClasses)
+			{
+				queryThreads.Append(new std::thread(&BaseQuery::QueryWebsite, entry, queryString, &listings));
+				Sleep(10);
+			}
+
+			for (std::thread* entry : queryThreads)
+			{
+				entry->join();
+			}
 		}
 
-		for (std::string listingUrl : listings)
-		{
-			ui->scrollArea->AddNewListingEntry(Parser::ParseWebpage(listingUrl));
-		}
-
-		return;
+		DeviceDependentThreadPool<std::string>::StartThreadPool(&ThreadedParsing, listings, ui);
 	}
 };
 
@@ -48,11 +87,9 @@ private:
 
 	inline static std::string QueryURL = ("https://www.ebay.co.uk/sch/i.html?&_nkw={}&_sacat=9801");
 
-	NosLib::DynamicArray<std::string> GetListingArray(html::node* rootNode)
+	void ExtractListingArray(html::node* rootNode, NosLib::DynamicArray<std::string>* outArray)
 	{
 		std::vector<html::node*> foundListings = rootNode->select("a.s-item__link");
-
-		NosLib::DynamicArray<std::string> out;
 
 		for (html::node* entry : foundListings)
 		{
@@ -68,14 +105,13 @@ private:
 				continue;
 			}
 
-			out.Append(extractedUrl);
+			std::lock_guard<std::mutex> lock(ArrayMutex);
+			outArray->Append(extractedUrl);
 		}
-
-		return out;
 	}
 
 protected:
-	virtual NosLib::DynamicArray<std::string> QueryWebsite(const std::string& queryString) override
+	virtual void QueryWebsite(const std::string& queryString, NosLib::DynamicArray<std::string>* outArray) override
 	{
 		std::string queryRequest = std::vformat(QueryURL, std::make_format_args(queryString));
 
@@ -113,7 +149,7 @@ protected:
 		html::parser p;
 		html::node_ptr node = p.parse(content);
 
-		return GetListingArray(node.get());
+		ExtractListingArray(node.get(), outArray);
 	}
 public:
 	EbayQuery() {}
@@ -145,7 +181,7 @@ private:
 
 	inline static std::string QueryURL = ("https://www.facebook.com/marketplace/{}/search/?query={}");
 
-	NosLib::DynamicArray<std::string> GetListingArray(html::node* rootNode)
+	void ExtractListingArray(html::node* rootNode, NosLib::DynamicArray<std::string>* outArray)
 	{
 		using json = nlohmann::json;
 
@@ -182,22 +218,18 @@ private:
 		/* simplify down */
 		listingJsonInfo = listingJsonInfo["require"][0][3][0]["__bbox"]["require"][0][3][1]["__bbox"]["result"]["data"]["marketplace_search"]["feed_units"]["edges"];
 
-		NosLib::DynamicArray<std::string> out;
-
 		static std::string marketplaceLink = "https://www.facebook.com/marketplace/item/";
 
 		for (auto& it : listingJsonInfo)
 		{
 			std::string id = it["node"]["listing"]["id"].get<std::string>();
 
-			out.Append(marketplaceLink + id);
+			std::lock_guard<std::mutex> lock(ArrayMutex);
+			outArray->Append(marketplaceLink + id);
 		}
-
-		return out;
 	}
-
 protected:
-	virtual NosLib::DynamicArray<std::string> QueryWebsite(const std::string& queryString) override
+	virtual void QueryWebsite(const std::string& queryString, NosLib::DynamicArray<std::string>* outArray) override
 	{
 		std::string queryRequest = std::vformat(QueryURL, std::make_format_args(Country, queryString));
 
@@ -240,7 +272,7 @@ protected:
 		html::parser p;
 		html::node_ptr node = p.parse(content);
 
-		return GetListingArray(node.get());
+		ExtractListingArray(node.get(), outArray);
 	}
 public:
 	FacebookQuery() {}
