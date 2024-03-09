@@ -63,10 +63,11 @@ protected:
 			ThreadPool[i]->join();
 			ThreadPool.Remove(i);
 		}
+
+		/* in theory, thread deletes itself here */
 	}
 
-public:
-	inline static void StartThreadPool(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*), const NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui)
+	inline static void ThreadPoolManagement(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*), const NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui) /* Implement Stopping */
 	{
 		for (WorkType workItem : work)
 		{
@@ -80,5 +81,12 @@ public:
 		}
 
 		ManageThreads();
+	}
+
+public:
+	inline static void StartThreadPool(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*), NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui)
+	{
+		std::thread thisThread(&DeviceDependentThreadPool<WorkType>::ThreadPoolManagement, workFunc, work, ui);
+		thisThread.detach();
 	}
 };

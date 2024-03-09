@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NosLib/DynamicArray.hpp>
+#include <NosLib/Logging.hpp>
 
 #include <vector>
 #include <format>
@@ -31,7 +32,7 @@ inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>
 		}
 		catch (const std::exception ex)
 		{
-			fprintf(stderr, "%s\nListing %s skipped\n", ex.what(), listingEntry.GetWorkItem().c_str());
+			NosLib::Logging::CreateLog<char>(std::format("{}\nListing {} skipped\n", ex.what(), listingEntry.GetWorkItem()), NosLib::Logging::Severity::Error, false);
 		}
 
 		listingEntry.SetWorkStatus(WorkStatus::Finished);
