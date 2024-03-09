@@ -32,7 +32,7 @@ inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>
 		}
 		catch (const std::exception ex)
 		{
-			NosLib::Logging::CreateLog<char>(std::format("{}\nListing {} skipped\n", ex.what(), listingEntry.GetWorkItem()), NosLib::Logging::Severity::Error, false);
+			NosLib::Logging::CreateLog<char>(std::format("{}\nListing {} skipped\n", ex.what(), listingEntry.GetWorkItem()), NosLib::Logging::Severity::Error);
 		}
 
 		listingEntry.SetWorkStatus(WorkStatus::Finished);
@@ -124,12 +124,12 @@ protected:
 
 		if (!res)
 		{
-			fprintf(stderr, "%s\n", httplib::to_string(res.error()).c_str());
+			NosLib::Logging::CreateLog<char>(httplib::to_string(res.error()), NosLib::Logging::Severity::Error);
 
 			auto result = client.get_openssl_verify_result();
 			if (result)
 			{
-				fprintf(stderr, "verify error: %s\n", X509_verify_cert_error_string(result));
+				NosLib::Logging::CreateLog<char>(std::format("OpenSSL Error: {}\n", X509_verify_cert_error_string(result)), NosLib::Logging::Severity::Error);
 			}
 
 			throw std::invalid_argument(std::format("Failed to connect to {}. Does the website?", urlRequest.Host).c_str());
@@ -247,12 +247,12 @@ protected:
 
 		if (!res)
 		{
-			fprintf(stderr, "%s\n", httplib::to_string(res.error()).c_str());
+			NosLib::Logging::CreateLog<char>(httplib::to_string(res.error()), NosLib::Logging::Severity::Error);
 
 			auto result = client.get_openssl_verify_result();
 			if (result)
 			{
-				fprintf(stderr, "verify error: %s\n", X509_verify_cert_error_string(result));
+				NosLib::Logging::CreateLog<char>(std::format("OpenSSL Error: {}\n", X509_verify_cert_error_string(result)), NosLib::Logging::Severity::Error);
 			}
 
 			throw std::invalid_argument(std::format("Failed to connect to {}. Does the website?", urlRequest.Host).c_str());

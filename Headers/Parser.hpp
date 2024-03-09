@@ -2,6 +2,7 @@
 
 #include <NosLib/HostPath.hpp>
 #include <NosLib/DynamicArray.hpp>
+#include <NosLib/Logging.hpp>
 
 #include <html.hpp>
 #include <nlohmann/Json.hpp>
@@ -48,6 +49,7 @@ public:
 
 		if (parser == nullptr)
 		{
+			NosLib::Logging::CreateLog<char>(std::format("Failed to find parser for {}. Website not supported", url.Host), NosLib::Logging::Severity::Error);
 			throw std::invalid_argument(std::format("Failed to find parser for {}. Website not supported", url.Host).c_str());
 			return nullptr;
 		}
@@ -63,12 +65,12 @@ public:
 
 		if (!res)
 		{
-			fprintf(stderr, "%s\n", httplib::to_string(res.error()).c_str());
+			NosLib::Logging::CreateLog<char>(httplib::to_string(res.error()), NosLib::Logging::Severity::Error);
 
 			auto result = client.get_openssl_verify_result();
 			if (result)
 			{
-				fprintf(stderr, "verify error: %s\n", X509_verify_cert_error_string(result));
+				NosLib::Logging::CreateLog<char>(std::format("OpenSSL Error: {}\n", X509_verify_cert_error_string(result)), NosLib::Logging::Severity::Error);
 			}
 
 			throw std::invalid_argument(std::format("Failed to connect to {}. Does the website?", url.Host).c_str());

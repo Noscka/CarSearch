@@ -28,6 +28,11 @@ public:
 
 	~PictureHolder()
 	{
+		if (!std::filesystem::exists(PicFilePath)) /* if already deleted, just don't do anything */
+		{
+			return;
+		}
+
 		std::filesystem::remove(PicFilePath);
 	}
 };
@@ -45,6 +50,11 @@ private:
 	}
 public:
 	PictureManager() = default;
+
+	~PictureManager()
+	{
+		std::filesystem::remove_all(StoreDirectory);
+	}
 
 	void SetStoreDirectory(const std::string& storeDirectory)
 	{
