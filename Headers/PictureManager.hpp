@@ -19,13 +19,6 @@ public:
 		NosLib::HttpUtilities::DownloadFile(picURL, downloadPath, false);
 	}
 
-	QImage MakeQImage()
-	{
-		QImage image;
-		image.load(QString::fromStdString(PicFilePath));
-		return image;
-	}
-
 	~PictureHolder()
 	{
 		if (!std::filesystem::exists(PicFilePath)) /* if already deleted, just don't do anything */
@@ -34,6 +27,13 @@ public:
 		}
 
 		std::filesystem::remove(PicFilePath);
+	}
+
+	QImage MakeQImage()
+	{
+		QImage image;
+		image.load(QString::fromStdString(PicFilePath));
+		return image;
 	}
 };
 
@@ -53,6 +53,11 @@ public:
 
 	~PictureManager()
 	{
+		if (!std::filesystem::exists(StoreDirectory)) /* if already deleted, just don't do anything */
+		{
+			return;
+		}
+
 		std::filesystem::remove_all(StoreDirectory);
 	}
 

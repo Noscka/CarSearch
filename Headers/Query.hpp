@@ -13,12 +13,24 @@
 #include "Parser.hpp"
 #include "ThreadPool.hpp"
 
-inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>* workItems, Ui::MainWindow* ui)
+inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>* workItems, Ui::MainWindow* ui, bool* stopSignal)
 {
 	for (WorkHolder<std::string>& listingEntry : (*workItems))
 	{
-		if (listingEntry.GetWorkStatus() != WorkStatus::Unfinished) /* if already started or finished, continue */
+		if ((*stopSignal))
 		{
+			break;
+		}
+
+		if (listingEntry.GetWorkStatus() == WorkStatus::Started || listingEntry.GetWorkStatus() == WorkStatus::Finished) /* if already started or finished, continue */
+		{
+			continue;
+		}
+
+		if (listingEntry.GetWorkStatus() == WorkStatus::Failed && listingEntry.GetErrorCount() >= listingEntry.GetMaxErrorCount())
+		{ /* if a failed work entry has failed more then the "MaxErrorCount", then just stop trying */
+
+			listingEntry.SetWorkStatus(WorkStatus::Finished);
 			continue;
 		}
 
@@ -29,13 +41,13 @@ inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>
 			Listing* newListing = Parser::ParseWebpage(listingEntry.GetWorkItem());
 			QObject::connect(newListing, &Listing::AddSelfToUi, ui->scrollArea, &ListingManager::AddNewListingEntry);
 			newListing->AddSelfToUiFunc();
+			listingEntry.SetWorkStatus(WorkStatus::Finished);
 		}
 		catch (const std::exception ex)
 		{
 			NosLib::Logging::CreateLog<char>(std::format("{}\nListing {} skipped\n", ex.what(), listingEntry.GetWorkItem()), NosLib::Logging::Severity::Error);
+			listingEntry.SetWorkStatus(WorkStatus::Failed);
 		}
-
-		listingEntry.SetWorkStatus(WorkStatus::Finished);
 	}
 }
 

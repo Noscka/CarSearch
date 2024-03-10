@@ -114,7 +114,7 @@ public:
 		currentLayout->AddWidget(newListingEntryContainer);
 
 		//this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
-		//QCoreApplication::processEvents();
+		QCoreApplication::processEvents();
 	}
 
 	template <typename ConnectFunc>

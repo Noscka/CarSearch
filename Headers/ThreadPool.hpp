@@ -10,16 +10,20 @@ enum class WorkStatus
 	Unfinished, /* Free to be worked on */
 	Started,	/* A worker has picked the work item up */
 	Finished,	/* work item is finished */
+	Failed,		/* There was some error */
 };
 
 template<class WorkType>
 class WorkHolder
 {
 protected:
+	inline static std::mutex WorkItemMutex;
+
 	WorkType WorkItem;
 	WorkStatus WorkItemStatus;
+	uint16_t ErrorCount;
+	inline static const uint16_t MaxErrorCount = 3;
 
-	inline static std::mutex WorkItemMutex;
 public:
 	WorkHolder(){}
 
@@ -29,12 +33,12 @@ public:
 		WorkItemStatus = WorkStatus::Unfinished;
 	}
 
-	WorkType GetWorkItem()
+	WorkType GetWorkItem() const
 	{
 		return WorkItem;
 	}
 
-	WorkStatus GetWorkStatus()
+	WorkStatus GetWorkStatus() const
 	{
 		std::lock_guard<std::mutex> lock(WorkItemMutex);
 		return WorkItemStatus;
@@ -43,7 +47,22 @@ public:
 	void SetWorkStatus(const WorkStatus& newStatus)
 	{
 		std::lock_guard<std::mutex> lock(WorkItemMutex);
+		if (newStatus == WorkStatus::Failed)
+		{
+			ErrorCount++;
+		}
+
 		WorkItemStatus = newStatus;
+	}
+
+	uint16_t GetErrorCount() const
+	{
+		return ErrorCount;
+	}
+
+	uint16_t GetMaxErrorCount() const
+	{
+		return MaxErrorCount;
 	}
 };
 
@@ -53,6 +72,8 @@ class DeviceDependentThreadPool
 protected:
 	inline static NosLib::DynamicArray<WorkHolder<WorkType>> WorkItemArray;
 	inline static NosLib::DynamicArray<std::thread*> ThreadPool;
+
+	inline static bool StopSignal = false;
 
 	inline static int ThreadPoolCount = 20; /* How many threads to use, will be made dynamic */
 
@@ -64,10 +85,11 @@ protected:
 			ThreadPool.Remove(i);
 		}
 
+		WorkItemArray.Clear();
 		/* in theory, thread deletes itself here */
 	}
 
-	inline static void ThreadPoolManagement(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*), const NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui) /* Implement Stopping */
+	inline static void ThreadPoolManagement(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*, bool*), const NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui) /* Implement Stopping */
 	{
 		for (WorkType workItem : work)
 		{
@@ -76,7 +98,7 @@ protected:
 
 		for (int i = 0; i < ThreadPoolCount; i++)
 		{
-			ThreadPool.Append(new std::thread(workFunc, &WorkItemArray, ui));
+			ThreadPool.Append(new std::thread(workFunc, &WorkItemArray, ui, &StopSignal));
 			Sleep(10); /* desync threads */
 		}
 
@@ -84,7 +106,7 @@ protected:
 	}
 
 public:
-	inline static void StartThreadPool(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*), NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui)
+	inline static void StartThreadPool(void(*workFunc)(NosLib::DynamicArray<WorkHolder<WorkType>>*, Ui::MainWindow*, bool*), NosLib::DynamicArray<WorkType>& work, Ui::MainWindow* ui)
 	{
 		std::thread thisThread(&DeviceDependentThreadPool<WorkType>::ThreadPoolManagement, workFunc, work, ui);
 		thisThread.detach();
