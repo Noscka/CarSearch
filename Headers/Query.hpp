@@ -45,8 +45,8 @@ inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>
 		}
 		catch (const std::exception ex)
 		{
-			NosLib::Logging::CreateLog<char>(std::format("{}\nListing {} skipped\n", ex.what(), listingEntry.GetWorkItem()), NosLib::Logging::Severity::Error);
 			listingEntry.SetWorkStatus(WorkStatus::Failed);
+			NosLib::Logging::CreateLog<char>(std::format("{}\nListing \"{}\" has failed {} times \n", ex.what(), listingEntry.GetWorkItem(), listingEntry.GetErrorCount()), NosLib::Logging::Severity::Error);
 		}
 	}
 }
@@ -87,6 +87,8 @@ public:
 			{
 				entry->join();
 			}
+
+			/* DynamicArray Destructor will delete all the thread pointers */
 		}
 
 		DeviceDependentThreadPool<std::string>::StartThreadPool(&ThreadedParsing, listings, ui);

@@ -11,6 +11,7 @@
 #include "PictureManager.hpp"
 
 #include <string>
+#include <tuple>
 
 class Parser
 {
@@ -110,6 +111,58 @@ private:
 		return title;
 	}
 
+	inline Price::Currency GetCurrency(const nlohmann::json& listingJsonInfo)
+	{
+		std::string currencyString = listingJsonInfo["currency"].get<std::string>();
+
+		if (currencyString == "GBP")
+		{
+			return Price::Currency::GBP;
+		}
+		else if (currencyString == "PLN")
+		{
+			return Price::Currency::ZLOTY;
+		}
+
+		throw std::exception("NOT IMPLEMENTED TYPE");
+		return Price::Currency::ZLOTY;
+	}
+
+	inline std::tuple<Price, Listing::Type> GetPricing(const nlohmann::json& listingJsonInfo)
+	{
+		Listing::Type type = Listing::Type::Normal;
+
+		if (listingJsonInfo["SEMANTIC_DATA"].contains("auctionPossible"))
+		{
+			type = Listing::Type::Auction;
+		}
+
+		nlohmann::json tempOffset;
+
+		if (listingJsonInfo["BUY_BOX"].contains("binModel")) /* if has buy now price, use that for now */
+		{
+			tempOffset = listingJsonInfo["BUY_BOX"]["binModel"]["price"]["value"];
+		}
+		else if(listingJsonInfo["BUY_BOX"].contains("bidPrice"))
+		{
+			tempOffset = listingJsonInfo["BUY_BOX"]["bidPrice"]["value"];
+		}
+		else if(listingJsonInfo["BUY_BOX"].contains("offerPrice"))
+		{
+			tempOffset = listingJsonInfo["BUY_BOX"]["offerPrice"]["value"];
+		}
+		else
+		{
+			throw std::exception("Cannot find where price is located");
+		}
+
+		uint64_t value = tempOffset["value"].get<uint64_t>();
+		Price::Currency currency = GetCurrency(tempOffset);
+
+		return std::make_tuple(Price(value, currency), type);
+
+	}
+
 	inline std::vector<std::string> GetPictureLinks(const nlohmann::json& listingJsonInfo)
 	{
 		std::vector<std::string> out;
@@ -126,7 +179,7 @@ private:
 protected:
 	inline virtual bool Check(const NosLib::HostPath& url) override
 	{
-		return (url.Host == "https://www.ebay.co.uk");
+		return (url.Host.find("https://www.ebay") != std::string::npos); /* if host contains ebay, so it works with global websites */
 	}
 
 public:
@@ -182,6 +235,16 @@ public:
 
 			jsonData = jsonData.substr(startPosition, endPosition - startPosition);
 
+#if 1
+			static int fileNum = 1;
+
+			std::ofstream debugFile(std::format("ebay{}.json", fileNum));
+			debugFile.write(jsonData.c_str(), jsonData.size());
+			debugFile.close();
+
+			fileNum++;
+#endif
+
 			try
 			{
 				listingJsonInfo = json::parse(jsonData);
@@ -197,7 +260,12 @@ public:
 		/* offset to useful data position */
 		listingJsonInfo = listingJsonInfo["o"]["w"][4][2]["model"];
 
-		return new Listing(GetTitle(listingJsonInfo), url.Full(), GetPictureLinks(listingJsonInfo));
+		std::string listingTitle = GetTitle(listingJsonInfo);
+		const auto[listingPrice, listingType] = GetPricing(listingJsonInfo);
+		std::vector<std::string> listingPictures = GetPictureLinks(listingJsonInfo);
+
+		/* BidInfo in GetPricing gives bid count and etc */
+		return new Listing(listingTitle, url.Full(), listingPrice, listingType, listingPictures);
 	}
 };
 
@@ -213,6 +281,11 @@ private:
 		std::string title = listingJsonInfo["marketplace_listing_title"].get<std::string>();
 
 		return title;
+	}
+
+	inline Price GetPricing(const nlohmann::json& listingJsonInfo)
+	{
+		return Price(10, Price::ZLOTY);
 	}
 
 	inline std::vector<std::string> GetPictureLinks(const nlohmann::json& listingJsonInfo)
@@ -257,16 +330,6 @@ public:
 
 	virtual Listing* Parse(const std::string& content, const NosLib::HostPath& url)
 	{
-#if 0
-		static int fileNum = 1;
-
-		std::ofstream debugFile(std::format("file{}.html", fileNum));
-		debugFile.write(content.c_str(), content.size());
-		debugFile.close();
-
-		fileNum++;
-#endif
-
 		using json = nlohmann::json;
 
 		json listingJsonInfo;
@@ -290,6 +353,12 @@ public:
 					continue;
 				}
 
+#if 0
+				std::ofstream debugFile("facebook.json");
+				debugFile.write(jsonData.c_str(), jsonData.size());
+				debugFile.close();
+#endif
+
 				try
 				{
 					listingJsonInfo = json::parse(jsonData);
@@ -307,7 +376,7 @@ public:
 		/* offset to useful data position */
 		listingJsonInfo = listingJsonInfo["require"][0][3][0]["__bbox"]["require"][3][3][1]["__bbox"]["result"]["data"]["viewer"]["marketplace_product_details_page"]["target"];
 
-		return new Listing(GetTitle(listingJsonInfo), url.Full(), GetPictureLinks(listingJsonInfo));
+		return new Listing(GetTitle(listingJsonInfo), url.Full(), GetPricing(listingJsonInfo), Listing::Type::Normal, GetPictureLinks(listingJsonInfo));
 	}
 };
 

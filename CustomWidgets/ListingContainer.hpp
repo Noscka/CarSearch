@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QCoreApplication>
 #include <QtWidgets\QLayout>
 #include <QtWidgets\QLabel>
@@ -16,7 +17,9 @@ signals:
 
 protected:
 	QVBoxLayout* ContainerLayout = nullptr;
+	QHBoxLayout* LowerInfoContainerLayout = nullptr;
 	QLabel* Title = nullptr;
+	QLabel* PriceLabel = nullptr;
 
 	PictureCarousel* PicCarousel = nullptr;
 
@@ -38,22 +41,34 @@ public:
 		PicCarousel->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 		ContainerLayout->addWidget(PicCarousel);
 
+		LowerInfoContainerLayout = new QHBoxLayout();
+		LowerInfoContainerLayout->setContentsMargins(0,0,0,0);
+		ContainerLayout->addLayout(LowerInfoContainerLayout);
+
 		Title = new QLabel(this);
 		Title->setWordWrap(true);
-		Title->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum));
 		Title->setMargin(1);
 		Title->setText(QString::fromStdString(ListingEntry->GetTitle()));
 		QFont titleFont = Title->font();
 		titleFont.setPointSize(12);
 		Title->setFont(titleFont);
-		ContainerLayout->addWidget(Title);
+		LowerInfoContainerLayout->addWidget(Title);
 
+		PriceLabel = new QLabel(this);
+		PriceLabel->setWordWrap(false);
+		PriceLabel->setText(QString::fromStdString(ListingEntry->GetPrice().str()));
+		QFont priceFont = PriceLabel->font();
+		priceFont.setPointSize(12);
+		PriceLabel->setFont(priceFont);
+		LowerInfoContainerLayout->addWidget(PriceLabel);
 	}
 
 	~ListingContainer()
 	{
 		delete ContainerLayout;
+		delete LowerInfoContainerLayout;
 		delete Title;
+		delete PriceLabel;
 		delete PicCarousel;
 		delete ListingEntry;
 	}
