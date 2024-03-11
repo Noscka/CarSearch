@@ -29,12 +29,9 @@ public:
 	{
 		ui.setupUi(this);
 
-		//BaseQuery::Query("BMW e36", &ui);
+		BaseQuery::Query("BMW e36", &ui);
 
-		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/375305077858")); /* Not Auction */
-		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/335296325051")); /* Auction with "Buy Now" Price */ 
-		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.co.uk/itm/126370708923")); /* Auction without "Buy Now" Price */
-		ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.ebay.pl/itm/394564084936")); /* Polish */
+		//ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.facebook.com/marketplace/item/718015623312523")); /* facebook */
 	}
 
 	inline ~MainWindow()

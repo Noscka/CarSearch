@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QObject>
 
@@ -17,7 +17,8 @@ public:
 	enum Currency
 	{
 		GBP,
-		ZLOTY
+		ZLOTY,
+		USD
 	};
 
 protected:
@@ -31,7 +32,9 @@ protected:
 		case GBP:
 			return "GBP";
 		case ZLOTY:
-			return "ZL";
+			return "zł";
+		case USD:
+			return "USD";
 		}
 	return "UNKNOWN";
 	}

@@ -65,8 +65,8 @@ public:
 
 	~ListingContainer()
 	{
-		delete ContainerLayout;
 		delete LowerInfoContainerLayout;
+		delete ContainerLayout;
 		delete Title;
 		delete PriceLabel;
 		delete PicCarousel;

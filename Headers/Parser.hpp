@@ -235,7 +235,7 @@ public:
 
 			jsonData = jsonData.substr(startPosition, endPosition - startPosition);
 
-#if 1
+#if 0
 			static int fileNum = 1;
 
 			std::ofstream debugFile(std::format("ebay{}.json", fileNum));
@@ -283,9 +283,35 @@ private:
 		return title;
 	}
 
+	inline Price::Currency GetCurrency(const nlohmann::json& listingJsonInfo)
+	{
+		std::string currencyString = listingJsonInfo["currency"].get<std::string>();
+
+		if (currencyString == "GBP")
+		{
+			return Price::Currency::GBP;
+		}
+		else if (currencyString == "PLN")
+		{
+			return Price::Currency::ZLOTY;
+		}
+		else if (currencyString == "USD")
+		{
+			return Price::Currency::USD;
+		}
+
+		throw std::exception("NOT IMPLEMENTED TYPE");
+		return Price::Currency::ZLOTY;
+	}
+
 	inline Price GetPricing(const nlohmann::json& listingJsonInfo)
 	{
-		return Price(10, Price::ZLOTY);
+		nlohmann::json tempOffset = listingJsonInfo["listing_price"];
+
+		uint64_t value = std::stoull(tempOffset["amount"].get<std::string>());
+		Price::Currency currency = GetCurrency(tempOffset);
+
+		return Price(value, currency);
 	}
 
 	inline std::vector<std::string> GetPictureLinks(const nlohmann::json& listingJsonInfo)
@@ -354,9 +380,13 @@ public:
 				}
 
 #if 0
-				std::ofstream debugFile("facebook.json");
+				static int fileNum = 1;
+
+				std::ofstream debugFile(std::format("facebook{}.json", fileNum));
 				debugFile.write(jsonData.c_str(), jsonData.size());
 				debugFile.close();
+
+				fileNum++;
 #endif
 
 				try
