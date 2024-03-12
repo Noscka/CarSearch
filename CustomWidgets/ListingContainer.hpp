@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QCoreApplication>
-#include <QtWidgets\QLayout>
 #include <QtWidgets\QLabel>
+#include <QtWidgets\QLayout>
 #include <QWidget>
 
 #include "Headers/Listing.hpp"
@@ -13,7 +13,7 @@ class ListingContainer : public QWidget
 	Q_OBJECT
 
 signals:
-	inline void MouseReleased(Listing* listingEntry);
+	inline void MouseReleased();
 
 protected:
 	QVBoxLayout* ContainerLayout = nullptr;
@@ -56,11 +56,13 @@ public:
 
 		PriceLabel = new QLabel(this);
 		PriceLabel->setWordWrap(false);
-		PriceLabel->setText(QString::fromStdString(ListingEntry->GetPrice().str()));
+		PriceLabel->setText(QString::fromStdString(ListingEntry->str()));
 		QFont priceFont = PriceLabel->font();
 		priceFont.setPointSize(12);
 		PriceLabel->setFont(priceFont);
 		LowerInfoContainerLayout->addWidget(PriceLabel);
+
+		QObject::connect(this, &ListingContainer::MouseReleased, [&ListingEntry = ListingEntry]() { ListingEntry->OpenLink(); });
 	}
 
 	~ListingContainer()
@@ -76,6 +78,6 @@ public:
 protected:
 	inline void mouseReleaseEvent(QMouseEvent* event) override
 	{
-		emit MouseReleased(ListingEntry);
+		emit MouseReleased();
 	}
 };

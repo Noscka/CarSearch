@@ -24,12 +24,20 @@ class MainWindow : public QMainWindow
 private:
     Ui::MainWindow ui;
 
+protected:
+	void Search()
+	{
+		BaseQuery::Query(ui.SearchText->text().toStdString(), &ui);
+	}
+
 public:
 	inline MainWindow(QWidget* parent = nullptr) : QMainWindow(parent)
 	{
 		ui.setupUi(this);
 
-		BaseQuery::Query("BMW e36", &ui);
+		connect(ui.SearchButton, &QPushButton::released, this, &MainWindow::Search);
+
+		//BaseQuery::Query("BMW e36", &ui);
 
 		//ui.scrollArea->AddNewListingEntry(Parser::ParseWebpage("https://www.facebook.com/marketplace/item/718015623312523")); /* facebook */
 	}

@@ -64,6 +64,8 @@ class ListingManager : public QScrollArea
 {
 	Q_OBJECT
 
+
+
 protected:
 	static inline NosLib::DynamicArray<ListingContainer*> ListingEntryWidgetArray;
 
@@ -109,20 +111,6 @@ public:
 	inline void AddListingEntry(Listing* newListingEntry)
 	{
 		ListingContainer* newListingEntryContainer = new ListingContainer(newListingEntry, this);
-		ListingEntryWidgetArray.Append(newListingEntryContainer);
-		LeftToRightLayout* currentLayout = static_cast<LeftToRightLayout*>(this->widget()->layout());
-		currentLayout->AddWidget(newListingEntryContainer);
-
-		//this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
-		QCoreApplication::processEvents();
-	}
-
-	template <typename ConnectFunc>
-	inline void AddListingEntry(Listing* newListingEntry, ConnectFunc&& slot)
-	{
-		ListingContainer* newListingEntryContainer = new ListingContainer(newListingEntry, this);
-		connect(newListingEntryContainer, &ListingContainer::MouseReleased, slot);
-
 		ListingEntryWidgetArray.Append(newListingEntryContainer);
 		LeftToRightLayout* currentLayout = static_cast<LeftToRightLayout*>(this->widget()->layout());
 		currentLayout->AddWidget(newListingEntryContainer);

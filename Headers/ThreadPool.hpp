@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include <NosLib/DynamicArray.hpp>
+#include <NosLib/Logging.hpp>
 
 enum class WorkStatus
 {
@@ -86,6 +87,7 @@ protected:
 		}
 
 		WorkItemArray.Clear();
+		NosLib::Logging::CreateLog<char>("Thread Pool finished work", NosLib::Logging::Severity::Debug);
 		/* in theory, thread deletes itself here */
 	}
 
@@ -99,7 +101,8 @@ protected:
 		for (int i = 0; i < ThreadPoolCount; i++)
 		{
 			ThreadPool.Append(new std::thread(workFunc, &WorkItemArray, ui, &StopSignal));
-			Sleep(10); /* desync threads */
+			NosLib::Logging::CreateLog<char>(std::format("Thread {} started", ThreadPool.GetItemCount()), NosLib::Logging::Severity::Debug);
+			Sleep(1); /* desync threads */
 		}
 
 		ManageThreads();

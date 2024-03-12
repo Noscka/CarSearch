@@ -260,6 +260,11 @@ public:
 		/* offset to useful data position */
 		listingJsonInfo = listingJsonInfo["o"]["w"][4][2]["model"];
 
+		if (listingJsonInfo.contains("placementId"))
+		{
+			throw std::exception("Invalid json data");
+		}
+
 		std::string listingTitle = GetTitle(listingJsonInfo);
 		const auto[listingPrice, listingType] = GetPricing(listingJsonInfo);
 		std::vector<std::string> listingPictures = GetPictureLinks(listingJsonInfo);
