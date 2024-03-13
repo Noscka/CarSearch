@@ -40,6 +40,7 @@ public:
 class PictureManager
 {
 private:
+	int PicIndex = 0;
 	NosLib::DynamicArray<PictureHolder*> Pictures;
 
 	std::string StoreDirectory;
@@ -48,6 +49,7 @@ private:
 	{
 		return std::format("pic{}.jpeg", Pictures.GetItemCount());
 	}
+
 public:
 	PictureManager() = default;
 
@@ -76,6 +78,25 @@ public:
 		}
 	}
 
+	void PreviousImage()
+	{
+		if (PicIndex <= 0)
+		{
+			return;
+		}
+
+		PicIndex--;
+	}
+
+	void NextImage()
+	{
+		if (PicIndex >= Pictures.GetLastArrayIndex())
+		{
+			return;
+		}
+		PicIndex++;
+	}
+
 	void AddPicture(const std::string& picURL)
 	{
 		std::string filePath = StoreDirectory + MakeFileName();
@@ -91,8 +112,13 @@ public:
 		}
 	}
 
-	PictureHolder*& operator[](const int& pos)
+	QPixmap GetPixmap()
 	{
-		return Pictures[pos];
+		if (Pictures[PicIndex] == nullptr)
+		{
+			throw std::out_of_range("Got out of range");
+		}
+
+		return QPixmap::fromImage(Pictures[PicIndex]->MakeQImage());
 	}
 };

@@ -3,6 +3,8 @@
 #include <QCoreApplication>
 #include <QtWidgets\QLayout>
 #include <QtWidgets\QLabel>
+#include <QtWidgets/QPushButton>
+#include <QSpacerItem>
 #include <QWidget>
 
 #include "../Headers/PictureManager.hpp"
@@ -12,31 +14,32 @@ class PictureDisplay : public QLabel
 	Q_OBJECT
 
 private:
-protected:
-	void paintEvent(QPaintEvent* event) override
+	QPixmap pix;
+public slots:
+	void setPixmap(const QPixmap& p)
 	{
-		QLabel::paintEvent(event);
-		//if (!pixmap() || pixmap().isNull())
-		//{
-		//	return;
-		//}
+		pix = p;
+		QLabel::setPixmap(scaledPixmap());
+	}
 
-		//QStyle* style = QWidget::style();
-		//QPainter painter();
-		//drawFrame(&painter);
-		//QRect cr = contentsRect();
-		//cr.adjust(margin(), margin(), -margin(), -margin());
+	void resizeEvent(QResizeEvent* event) override
+	{
+		QLabel::resizeEvent(event);
 
-		//const qreal dpr = devicePixelRatio();
-		//QImage image = pixmap().toImage();
-		//setPixmap(QPixmap::fromImage(image.scaled(cr.size()* dpr, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-		////style->drawItemPixmap(&painter, cr, align, pix);
+		if (!pix.isNull())
+			QLabel::setPixmap(scaledPixmap());
 	}
 public:
 	inline PictureDisplay(QWidget* parent = nullptr) : QLabel(parent)
 	{
 		//By default, this class scales the pixmap according to the label's size
-		setScaledContents(true);
+		setScaledContents(false);
+	}
+
+	QPixmap scaledPixmap() const
+	{
+		//return pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		return pix.scaled(500, 500, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	}
 };
 
@@ -46,26 +49,59 @@ class PictureCarousel : public QWidget
 
 private:
 protected:
-	QVBoxLayout* ContainerLayout = nullptr;
+	QHBoxLayout* ContainerLayout = nullptr;
 
 	PictureDisplay* Picture = nullptr;
+	QHBoxLayout* OnPictureLayout = nullptr;
+
+	QPushButton* PreviousPictureButton = nullptr;
+	QPushButton* NextPictureButton = nullptr;
 
 	PictureManager* PicManagerPointer = nullptr;
+
+	void UpdatePicture()
+	{
+		Picture->setPixmap(PicManagerPointer->GetPixmap());
+		QCoreApplication::processEvents();
+	}
 public:
 	inline PictureCarousel(PictureManager* picManagerPointer, QWidget* parent = nullptr) : QWidget(parent)
 	{
 		PicManagerPointer = picManagerPointer;
 
-		ContainerLayout = new QVBoxLayout(this);
+		ContainerLayout = new QHBoxLayout(this);
 		ContainerLayout->setContentsMargins(0,0,0,0);
 		setLayout(ContainerLayout);
 
 		Picture = new PictureDisplay(this);
+		OnPictureLayout = new QHBoxLayout(Picture);
+		Picture->setLayout(OnPictureLayout);
 
-		if ((*PicManagerPointer)[0] != nullptr)
-		{
-			Picture->setPixmap(QPixmap::fromImage((*PicManagerPointer)[0]->MakeQImage()));
-		}
-		ContainerLayout->addWidget(Picture);
+		PreviousPictureButton = new QPushButton(this);
+		PreviousPictureButton->setContentsMargins(0,0,0,0);
+		PreviousPictureButton->setIcon(QIcon(":/Resources/Icons/LeftArrow.png"));
+		OnPictureLayout->setContentsMargins(0, 0, 0, 0);
+		OnPictureLayout->addWidget(PreviousPictureButton);
+		OnPictureLayout->addStretch();
+
+		Picture->setPixmap(PicManagerPointer->GetPixmap());
+		ContainerLayout->addWidget(Picture, 0, Qt::AlignCenter);
+
+		NextPictureButton = new QPushButton(this);
+		NextPictureButton->setContentsMargins(0, 0, 0, 0);
+		NextPictureButton->setIcon(QIcon(":/Resources/Icons/RightArrow.png"));
+		OnPictureLayout->addWidget(NextPictureButton);
+
+		connect(PreviousPictureButton, &QPushButton::released, [this]() { PicManagerPointer->PreviousImage(); UpdatePicture(); });
+		connect(NextPictureButton, &QPushButton::released, [this]() { PicManagerPointer->NextImage(); UpdatePicture(); });
+	}
+
+	~PictureCarousel()
+	{
+		delete ContainerLayout;
+		delete OnPictureLayout;
+		delete PreviousPictureButton;
+		delete NextPictureButton;
+		delete Picture;
 	}
 };

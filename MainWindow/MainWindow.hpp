@@ -35,6 +35,8 @@ public:
 	{
 		ui.setupUi(this);
 
+		connect(ui.SearchText, &QLineEdit::returnPressed, ui.SearchButton, &QPushButton::released);
+
 		connect(ui.SearchButton, &QPushButton::released, this, &MainWindow::Search);
 		connect(ui.SearchButton, &QPushButton::released, ui.ListingArea, &ListingManager::Clear);
 

@@ -18,6 +18,11 @@ qt_standard_project_setup()
 file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "CustomWidgets/*" "Headers/*" "MainWindow/*")
 
 qt_add_executable(${PROJECT_NAME} main.cpp ${ProjectFiles})
+qt_add_resources(${PROJECT_NAME} "icons"
+    FILES
+       Resources/Icons/LeftArrow.png
+       Resources/Icons/RightArrow.png
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE NosLib htmlparser nlohmann_json::nlohmann_json Qt6::Widgets Qt6::Core Qt6::Gui)
 target_include_directories(${PROJECT_NAME} PRIVATE htmlparser Qt6::Widgets Qt6::Core Qt6::Gui)
@@ -28,7 +33,6 @@ add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 #    WIN32_EXECUTABLE ON
 #    MACOSX_BUNDLE ON
 #)
-
 
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)
 
