@@ -1,6 +1,5 @@
 #pragma once
 #include <QCoreApplication>
-#include <QtWidgets/QLayout>
 #include <QtWidgets\QScrollBar>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets\QLabel>
@@ -8,68 +7,17 @@
 
 #include <NosLib/DynamicArray.hpp>
 
+#include "FlowLayout.hpp"
 #include "ListingContainer.hpp"
-
-
-class LeftToRightLayout : public QGridLayout
-{
-	Q_OBJECT
-
-private:
-	int MaxColumnCount = -1;
-
-public slots:
-	void NewAddWidget(QWidget* widget)
-	{
-		AddWidget(widget);
-	}
-
-public:
-	LeftToRightLayout(int maxColumnCount, QWidget* parent) : QGridLayout(parent)
-	{
-		setAlignment(Qt::AlignmentFlag::AlignTop | Qt::AlignmentFlag::AlignLeft);
-
-		MaxColumnCount = maxColumnCount;
-	}
-
-
-	~LeftToRightLayout()
-	{
-
-	}
-
-	void AddWidget(QWidget* widget)
-	{
-		int current_row = 0;
-		int current_column = 0;
-
-		while (itemAtPosition(current_row, current_column) != 0)
-		{
-			if (current_column == (MaxColumnCount - 1))
-			{
-				current_column = 0;
-				++current_row;
-			}
-			else
-			{
-				++current_column;
-			}
-		}
-
-		QGridLayout::addWidget(widget, current_row, current_column);
-	}
-};
 
 class ListingManager : public QScrollArea
 {
 	Q_OBJECT
 
-
-
 protected:
 	static inline NosLib::DynamicArray<ListingContainer*> ListingEntryWidgetArray;
 
-	LeftToRightLayout* ListingLayout;
+	FlowLayout* ListingLayout;
 	QWidget* ListingWidget;
 
 public slots:
@@ -95,7 +43,7 @@ public:
 		ListingWidget = new QWidget(this);
 		setWidget(ListingWidget);
 
-		ListingLayout = new LeftToRightLayout(3, ListingWidget);
+		ListingLayout = new FlowLayout(ListingWidget);
 		ListingLayout->setContentsMargins(0, 0, 0, 0);
 		ListingWidget->setLayout(ListingLayout);
 
@@ -106,8 +54,8 @@ public:
 	{
 		ListingContainer* newListingEntryContainer = new ListingContainer(newListingEntry, this);
 		ListingEntryWidgetArray.Append(newListingEntryContainer);
-		LeftToRightLayout* currentLayout = static_cast<LeftToRightLayout*>(this->widget()->layout());
-		currentLayout->AddWidget(newListingEntryContainer);
+		QLayout* currentLayout = this->widget()->layout();
+		currentLayout->addWidget(newListingEntryContainer);
 
 		//this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
 		QCoreApplication::processEvents();
