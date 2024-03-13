@@ -78,22 +78,16 @@ public slots:
 		AddListingEntry(newListingEntry);
 	}
 
-	/*void RemoveListingEntry(Listing* serverEntry)
-	{
-		for (int i = 0; i <= ListingEntryWidgetArray.GetLastArrayIndex(); i++)
+	void Clear()
+	{ 
+		for (ListingContainer* entry : ListingEntryWidgetArray)
 		{
-			if (serverEntry != ListingEntryWidgetArray[i]->Server)
-			{
-				continue;
-			}
-
-			this->widget()->layout()->removeWidget(ListingEntryWidgetArray[i]);
-			ListingEntryWidgetArray.Remove(i);
-			break;
+			delete entry;
 		}
-		this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
+
+		ListingEntryWidgetArray.Clear();
 		QCoreApplication::processEvents();
-	}*/
+	}
 
 public:
 	inline ListingManager(QWidget* parent = nullptr) : QScrollArea(parent)

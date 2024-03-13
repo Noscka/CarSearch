@@ -8,15 +8,15 @@
 #include <string>
 #include <thread>
 #include <mutex>
-#include <atomic>
 
+#include "Listing.hpp"
 #include "Parser.hpp"
 #include "ThreadPool.hpp"
 
 inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>* workItems, Ui::MainWindow* ui, bool* stopSignal)
 {
 	for (WorkHolder<std::string>& listingEntry : (*workItems))
-	{
+	{ /* Go back over to correct all the failed work items */
 		if ((*stopSignal))
 		{
 			break;
@@ -39,7 +39,7 @@ inline static void ThreadedParsing(NosLib::DynamicArray<WorkHolder<std::string>>
 		try
 		{
 			Listing* newListing = Parser::ParseWebpage(listingEntry.GetWorkItem());
-			QObject::connect(newListing, &Listing::AddSelfToUi, ui->scrollArea, &ListingManager::AddNewListingEntry);
+			QObject::connect(newListing, &Listing::AddSelfToUi, ui->ListingArea, &ListingManager::AddNewListingEntry);
 			newListing->AddSelfToUiFunc();
 			listingEntry.SetWorkStatus(WorkStatus::Finished);
 		}
@@ -80,7 +80,7 @@ public:
 			for (BaseQuery* entry : QueryClasses)
 			{
 				queryThreads.Append(new std::thread(&BaseQuery::QueryWebsite, entry, queryString, &listings));
-				Sleep(10);
+				Sleep(1);
 			}
 
 			for (std::thread* entry : queryThreads)

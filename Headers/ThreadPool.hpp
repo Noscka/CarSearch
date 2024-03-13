@@ -1,10 +1,11 @@
 #pragma once
 
-#include <thread>
-#include <mutex>
-
 #include <NosLib/DynamicArray.hpp>
 #include <NosLib/Logging.hpp>
+
+#include <mutex>
+#include <thread>
+#include <cstdint>
 
 enum class WorkStatus
 {
@@ -22,7 +23,7 @@ protected:
 
 	WorkType WorkItem;
 	WorkStatus WorkItemStatus;
-	uint16_t ErrorCount;
+	uint16_t ErrorCount = 0;
 	inline static const uint16_t MaxErrorCount = 3;
 
 public:

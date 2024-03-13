@@ -36,6 +36,7 @@ public:
 		ui.setupUi(this);
 
 		connect(ui.SearchButton, &QPushButton::released, this, &MainWindow::Search);
+		connect(ui.SearchButton, &QPushButton::released, ui.ListingArea, &ListingManager::Clear);
 
 		//BaseQuery::Query("BMW e36", &ui);
 

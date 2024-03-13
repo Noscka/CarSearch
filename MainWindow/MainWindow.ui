@@ -142,7 +142,7 @@
      </widget>
     </item>
     <item>
-     <widget class="ListingManager" name="scrollArea">
+     <widget class="ListingManager" name="ListingArea">
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
